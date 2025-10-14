@@ -1,83 +1,90 @@
-const CACHE_NAME = 'agenda-treino-cache-v3'; // Versão incrementada para forçar a atualização
-
-// Apenas os arquivos essenciais do "app shell" são pré-cacheados para garantir uma instalação robusta.
-// Outros ativos (JS, CSS, fontes, imagens) serão cacheados dinamicamente na primeira visita.
-const urlsToCache = [
+const CACHE_NAME = 'agenda-treino-cache-v4';
+const APP_SHELL_URLS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/index.tsx',
+  '/App.tsx',
+  '/constants.ts',
+  '/types.ts',
+  '/hooks/useLocalStorage.ts',
+  '/components/Icons.tsx'
 ];
 
+// Instalação: Cacheia o app shell e os recursos críticos locais.
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Cache aberto para pré-cache do app shell');
-        return cache.addAll(urlsToCache);
+        // Adiciona todos os recursos essenciais de uma vez.
+        // Recursos externos (CDN, fontes) serão cacheados dinamicamente.
+        return cache.addAll(APP_SHELL_URLS);
+      })
+      .catch(error => {
+        console.error('Falha ao pré-cachear o app shell:', error);
       })
   );
 });
 
-self.addEventListener('fetch', event => {
-  // Apenas manipular solicitações GET
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Estratégia "Cache falling back to Network" (Offline-first)
-        // Se tivermos uma resposta no cache, retorne-a imediatamente.
-        if (response) {
-          return response;
-        }
-
-        // Se não, busque na rede.
-        return fetch(event.request).then(
-          networkResponse => {
-            // Verifique se recebemos uma resposta válida para cachear.
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'opaque') {
-              return networkResponse;
-            }
-
-            // IMPORTANTE: Clone a resposta. Uma resposta é um stream
-            // e como queremos que o navegador e o cache consumam a resposta,
-            // precisamos cloná-la para ter dois streams.
-            const responseToCache = networkResponse.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                // Cacheia a nova resposta para uso futuro.
-                cache.put(event.request, responseToCache);
-              });
-
-            return networkResponse;
-          }
-        ).catch(error => {
-          // A solicitação de rede falhou, provavelmente offline.
-          // Para solicitações de navegação (ex: recarregar a página),
-          // servimos a página principal como fallback para que o SPA carregue.
-          if (event.request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-        });
-      })
-  );
-});
-
+// Ativação: Limpa caches antigos.
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (!cacheWhitelist.includes(cacheName)) {
             console.log('Deletando cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
+  );
+});
+
+// Fetch: Implementa a estratégia de cache e rede.
+self.addEventListener('fetch', event => {
+  // Ignora solicitações que não sejam GET.
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Estratégia para solicitações de navegação (HTML).
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      // Sempre serve a "casca" do aplicativo.
+      caches.match('/index.html')
+        .then(response => {
+          return response || fetch(event.request);
+        })
+    );
+    return;
+  }
+
+  // Estratégia para todos os outros recursos (JS, CSS, fontes, imagens, etc.).
+  // Cache-first: Tenta servir do cache, se falhar, vai para a rede.
+  event.respondWith(
+    caches.match(event.request)
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // Se não estiver no cache, busca na rede.
+        return fetch(event.request).then(networkResponse => {
+          // Clona a resposta para poder armazená-la no cache e retorná-la.
+          const responseToCache = networkResponse.clone();
+          
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              // Armazena a nova resposta no cache.
+              cache.put(event.request, responseToCache);
+            });
+            
+          return networkResponse;
+        });
+      })
   );
 });
