@@ -1,0 +1,21 @@
+{
+  "short_name": "Agenda Treino",
+  "name": "Agenda de Treino Calistênico",
+  "description": "Uma agenda interativa no estilo checklist para um plano de treino de 4 semanas de calistenia e TRX.",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/8.x/icons/svg?seed=dumbbell&size=192",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://api.dicebear.com/8.x/icons/svg?seed=dumbbell&size=512",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#3B82F6",
+  "background_color": "#111827"
+}
