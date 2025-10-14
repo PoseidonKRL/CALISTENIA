@@ -1,27 +1,18 @@
-const CACHE_NAME = 'agenda-treino-cache-v2'; // Versão incrementada para forçar a atualização
+const CACHE_NAME = 'agenda-treino-cache-v3'; // Versão incrementada para forçar a atualização
+
+// Apenas os arquivos essenciais do "app shell" são pré-cacheados para garantir uma instalação robusta.
+// Outros ativos (JS, CSS, fontes, imagens) serão cacheados dinamicamente na primeira visita.
 const urlsToCache = [
   '/',
   '/index.html',
-  '/index.tsx',
-  '/App.tsx',
-  '/constants.ts',
-  '/types.ts',
-  '/hooks/useLocalStorage.ts',
-  '/components/Icons.tsx',
-  '/manifest.json',
-  // Ativos de CDN estáticos são seguros para pré-cache
-  'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
-  'https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2',
-  // As URLs problemáticas do aistudiocdn com '^' foram removidas. Elas serão cacheadas dinamicamente.
+  '/manifest.json'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache aberto para pré-cache');
-        // As URLs problemáticas foram removidas, então isso deve ser seguro agora.
+        console.log('Cache aberto para pré-cache do app shell');
         return cache.addAll(urlsToCache);
       })
   );
@@ -36,7 +27,8 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Se tivermos uma resposta no cache, retorne-a.
+        // Estratégia "Cache falling back to Network" (Offline-first)
+        // Se tivermos uma resposta no cache, retorne-a imediatamente.
         if (response) {
           return response;
         }
@@ -45,7 +37,7 @@ self.addEventListener('fetch', event => {
         return fetch(event.request).then(
           networkResponse => {
             // Verifique se recebemos uma resposta válida para cachear.
-            if (!networkResponse || networkResponse.status !== 200) {
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'opaque') {
               return networkResponse;
             }
 
@@ -64,12 +56,11 @@ self.addEventListener('fetch', event => {
           }
         ).catch(error => {
           // A solicitação de rede falhou, provavelmente offline.
-          // Para solicitações de navegação, servimos a página principal como fallback.
+          // Para solicitações de navegação (ex: recarregar a página),
+          // servimos a página principal como fallback para que o SPA carregue.
           if (event.request.mode === 'navigate') {
             return caches.match('/index.html');
           }
-          // Para outras solicitações com falha (imagens, API), a promessa de fetch
-          // será rejeitada e o navegador mostrará um erro (ícone de imagem quebrada, etc.).
         });
       })
   );
