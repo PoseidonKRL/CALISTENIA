@@ -10,7 +10,24 @@ export const XP_PER_CATEGORY: Record<ExerciseCategory, number> = {
 
 export const MISSION_XP_AMOUNTS: number[] = [10, 25, 50, 100, 500, 800, 1000];
 
+// New avatars with a dark, muscular, fantasy theme
+const DARK_FANTASY_AVATARS: string[] = [
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Kratos&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Goliath&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Valkyrie&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Conan&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=SheHulk&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Xena&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Beast&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Spartan&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Barbarian&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=GraveRobber&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Warlock&backgroundColor=1F2937,374151',
+  'https://api.dicebear.com/8.x/adventurer/svg?seed=Gladiator&backgroundColor=1F2937,374151',
+];
+
 export const PREDEFINED_AVATARS: string[] = [
+  ...DARK_FANTASY_AVATARS,
   'https://xsgames.co/randomusers/assets/avatars/male/74.jpg',
   'https://xsgames.co/randomusers/assets/avatars/female/74.jpg',
   'https://xsgames.co/randomusers/assets/avatars/male/1.jpg',
