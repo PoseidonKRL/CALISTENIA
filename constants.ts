@@ -55,6 +55,58 @@ export const MOTIVATIONAL_QUOTES: string[] = [
     "Transforme a dor em poder."
 ];
 
+export const PREDEFINED_MISSIONS: { text: string; xp: number }[] = [
+    // Health/Fitness
+    { text: "Beber 2 litros de água", xp: 30 },
+    { text: "Beber 3 litros de água", xp: 100 },
+    { text: "Fazer 10 minutos de alongamento", xp: 20 },
+    { text: "Caminhar por 30 minutos", xp: 40 },
+    { text: "Evitar açúcar refinado hoje", xp: 50 },
+    { text: "Dormir pelo menos 7-8 horas", xp: 60 },
+    { text: "Comer 3 porções de frutas", xp: 25 },
+
+    // Learning/Productivity
+    { text: "Ler um capítulo de um livro", xp: 30 },
+    { text: "Estudar um novo tópico por 30 minutos", xp: 40 },
+    { text: "Estudar um novo tópico por 1 hora", xp: 75 },
+    { text: "Estudar um novo tópico por 2 horas", xp: 150 },
+    { text: "Organizar sua área de trabalho/estudo", xp: 20 },
+    { text: "Planejar as tarefas de amanhã", xp: 15 },
+    { text: "Aprender 5 novas palavras de um idioma", xp: 25 },
+    { text: "Limpar a caixa de entrada do seu e-mail", xp: 20 },
+    { text: "Assistir a um vídeo educacional (TED, documentário, etc.)", xp: 35 },
+
+    // Mindfulness/Well-being
+    { text: "Meditar por 10 minutos", xp: 30 },
+    { text: "Escrever 3 coisas pelas quais você é grato", xp: 20 },
+    { text: "Passar 15 minutos ao ar livre (sem celular)", xp: 25 },
+    { text: "Conectar-se com um amigo ou familiar", xp: 20 },
+    { text: "Limitar o uso de redes sociais a 1 hora hoje", xp: 50 },
+    { text: "Ouvir um podcast relaxante ou inspirador", xp: 15 },
+    { text: "Praticar 'journaling' por 10 minutos", xp: 20 },
+];
+
+export const WORKOUT_CHALLENGES: { id: string; title: string; description: string; xp: number }[] = [
+    { 
+        id: 'challenge-pushups', 
+        title: 'Flexões Máximas em 60s', 
+        description: 'Faça o máximo de flexões que conseguir em 60 segundos com boa forma.', 
+        xp: 250 
+    },
+    { 
+        id: 'challenge-squat-hold', 
+        title: 'Agachamento Isométrico por 3 min', 
+        description: 'Sustente a posição de agachamento (paralelo ao chão) por 3 minutos contínuos.', 
+        xp: 300 
+    },
+    { 
+        id: 'challenge-plank-raises', 
+        title: 'Prancha com Elevação por 90s', 
+        description: 'Em posição de prancha, eleve os braços alternadamente sem balançar o quadril por 90 segundos.', 
+        xp: 200 
+    },
+];
+
 export const PLAYER_TITLES: { level: number; name: string }[] = [
     { level: 1, name: "Iniciante" },
     { level: 5, name: "Aspirante" },
