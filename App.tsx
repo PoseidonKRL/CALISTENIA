@@ -245,18 +245,14 @@ const WorkoutView: React.FC<{
 
 const MissionItem: React.FC<{
     mission: DailyMission;
-    onToggle: (id: string) => void;
+    onComplete: (id: string) => void;
     onDelete: (id: string) => void;
-}> = ({ mission, onToggle, onDelete }) => {
+}> = ({ mission, onComplete, onDelete }) => {
     const [timeLeft, setTimeLeft] = useState(0);
 
     useEffect(() => {
         const update = () => mission.createdAt + MISSION_DURATION - Date.now();
         setTimeLeft(update());
-
-        if (mission.completed) {
-            return; // Stop and don't start a new timer if completed
-        }
 
         const timerId = setInterval(() => {
             const newTimeLeft = update();
@@ -269,16 +265,15 @@ const MissionItem: React.FC<{
         }, 1000);
 
         return () => clearInterval(timerId);
-    }, [mission.id, mission.completed, mission.createdAt]);
+    }, [mission.id, mission.createdAt]);
 
     const hoursLeft = timeLeft / (1000 * 60 * 60);
 
     const missionStatusClass = useMemo(() => {
-        if (mission.completed) return 'bg-accent-green/10 border-accent-green';
         if (hoursLeft <= 4) return 'bg-red-500/10 border-red-500';
         if (hoursLeft <= 12) return 'bg-yellow-500/10 border-yellow-500';
         return 'bg-surface-light border-transparent hover:border-primary/50';
-    }, [mission.completed, hoursLeft]);
+    }, [hoursLeft]);
 
     return (
         <div
@@ -286,15 +281,14 @@ const MissionItem: React.FC<{
         >
             <div className="flex items-center space-x-4 flex-1 min-w-0">
                 <button 
-                    onClick={() => onToggle(mission.id)} 
-                    className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition-transform hover:scale-110 ${mission.completed ? 'bg-accent-green border-accent-green' : 'border-text-secondary'}`} 
-                    aria-checked={mission.completed} 
-                    disabled={timeLeft <= 0 && !mission.completed}
+                    onClick={() => onComplete(mission.id)} 
+                    className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center border-2 border-text-secondary transition-transform hover:scale-110"
+                    aria-checked={false} 
+                    disabled={timeLeft <= 0}
                 >
-                    {mission.completed && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
                 </button>
                 <div className="flex-1 min-w-0">
-                    <p className={`truncate ${mission.completed || timeLeft <= 0 ? 'text-text-secondary line-through' : 'text-text-primary'}`}>{mission.text}</p>
+                    <p className={`truncate ${timeLeft <= 0 ? 'text-text-secondary line-through' : 'text-text-primary'}`}>{mission.text}</p>
                     <div className="flex items-center text-xs text-text-secondary mt-1 font-mono bg-surface px-2 py-1 rounded-full w-fit">
                         <ClockIcon className="w-4 h-4 mr-1.5"/>
                         <span>{formatTimeLeft(timeLeft)}</span>
@@ -313,9 +307,9 @@ const MissionItem: React.FC<{
 const MissionsView: React.FC<{
     missions: DailyMission[];
     onAddMission: (mission: Omit<DailyMission, 'id' | 'completed' | 'createdAt'>) => void;
-    onToggleMission: (id: string) => void;
+    onCompleteMission: (id: string) => void;
     onDeleteMission: (id: string) => void;
-}> = ({ missions, onAddMission, onToggleMission, onDeleteMission }) => {
+}> = ({ missions, onAddMission, onCompleteMission, onDeleteMission }) => {
     const [text, setText] = useState('');
     const [xp, setXp] = useState(MISSION_XP_AMOUNTS[1]);
 
@@ -369,7 +363,7 @@ const MissionsView: React.FC<{
                     <MissionItem
                         key={mission.id}
                         mission={mission}
-                        onToggle={onToggleMission}
+                        onComplete={onCompleteMission}
                         onDelete={onDeleteMission}
                     />
                 ))}
@@ -828,30 +822,16 @@ const App: React.FC = () => {
         playSound('add');
     };
     
-    const toggleMissionCompletion = (id: string) => {
-        let xpAmount = 0;
-        let missionJustCompleted = false;
-        const newMissions = missions.map(mission => {
-            if (mission.id === id) {
-                const isNowCompleted = !mission.completed;
-                if (isNowCompleted) {
-                    missionJustCompleted = true;
-                    setActivityLog(prev => [...prev, { id: `mission-${id}`, text: mission.text, xp: mission.xp, type: 'mission', completedAt: Date.now() }]);
-                } else {
-                    setActivityLog(prev => prev.filter(item => item.id !== `mission-${id}`));
-                }
-                xpAmount = isNowCompleted ? mission.xp : -mission.xp;
-                return { ...mission, completed: isNowCompleted };
-            }
-            return mission;
-        });
-        
-        if(missionJustCompleted) {
-            playSound('complete');
+    const completeMission = (id: string) => {
+        const missionToComplete = missions.find(m => m.id === id);
+        if (!missionToComplete) {
+            return;
         }
-
-        setMissions(newMissions);
-        if (xpAmount !== 0) addXp(xpAmount);
+        
+        playSound('complete');
+        addXp(missionToComplete.xp);
+        setActivityLog(prev => [...prev, { id: `mission-${id}`, text: missionToComplete.text, xp: missionToComplete.xp, type: 'mission', completedAt: Date.now() }]);
+        setMissions(prev => prev.filter(mission => mission.id !== id));
     };
 
     const deleteMission = (id: string) => {
@@ -895,7 +875,7 @@ const App: React.FC = () => {
             <div className="max-w-4xl mx-auto p-4">
                 <main>
                     <Routes>
-                        <Route path="/" element={<MissionsView missions={missions} onAddMission={addMission} onToggleMission={toggleMissionCompletion} onDeleteMission={deleteMission} />} />
+                        <Route path="/" element={<MissionsView missions={missions} onAddMission={addMission} onCompleteMission={completeMission} onDeleteMission={deleteMission} />} />
                         <Route path="/workouts" element={<WorkoutView checkedItems={checkedItems} handleToggleCheck={handleToggleCheck} />} />
                         <Route path="/stats" element={<StatsView level={level} xp={xp} xpForNextLevel={xpForNextLevel} history={xpHistory} />} />
                         <Route path="/profile" element={<ProfileView level={level} activityLog={activityLog} dailyQuote={dailyQuote} onReset={resetProgress} />} />
